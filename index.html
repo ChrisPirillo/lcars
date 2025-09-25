@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LCARS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="An interactive, generative LCARS (Library Computer Access/Retrieval System) interface inspired by Star Trek. This dynamic web application creates randomized futuristic layouts and data streams.">
+    <meta name="keywords" content="LCARS, Star Trek, TNG, sci-fi, interface, futuristic, web application, generative art">
+    <meta name="author" content="Chris Pirillo">
+
+    <link rel="canonical" href="https://pirillo.com/arcade/lcars.html">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pirillo.com/arcade/lcars.html">
+    <meta property="og:title" content="LCARS Interface">
+    <meta property="og:description" content="An interactive, generative LCARS interface inspired by Star Trek.">
+    <meta property="og:image" content="https://pirillo.com/arcade/images/lcars.png">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://pirillo.com/arcade/lcars.html">
+    <meta property="twitter:title" content="LCARS Interface">
+    <meta property="twitter:description" content="An interactive, generative LCARS interface inspired by Star Trek.">
+    <meta property="twitter:image" content="https://pirillo.com/arcade/images/lcars.png">
+    <meta name="twitter:creator" content="@ChrisPirillo">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.gstatic.com/s/antonio/v26/gNMWW2o2Wfg2n3i_s_ce6w.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1CQ4D3VQ3L"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1CQ4D3VQ3L');
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "LCARS Interface",
+      "operatingSystem": "WEB",
+      "applicationCategory": "GameApplication",
+      "url": "https://pirillo.com/arcade/lcars.html",
+      "author": {
+        "@type": "Person",
+        "name": "Chris Pirillo",
+        "url": "https://chris.pirillo.com/"
+      },
+      "description": "An interactive, generative LCARS (Library Computer Access/Retrieval System) interface inspired by Star Trek.",
+      "screenshot": "https://pirillo.com/arcade/images/lcars.png",
+      "offers": {
+        "@type": "Offer",
+        "price": "0"
+      }
+    }
+    </script>
+
+    <style>
+        :root {
+            --bg-color: #000000;
+            --text-on-dark: #FFFFFF;
+            --text-on-color: #000000;
+            --primary-color: #FF9900;
+            --secondary-color: #CC99CC;
+            --tertiary-color: #9999CC;
+            --quad-color: #CC6666;
+            --quint-color: #FFCC99;
+            --accent-color: #9999FF;
+
+            --base-unit: clamp(10px, 1.8vw, 20px);
+            --padding: var(--base-unit);
+            --gap: calc(var(--base-unit) / 2);
+
+            --frame-thick-dim: calc(var(--base-unit) * 5);
+            --frame-thin-dim: calc(var(--base-unit) * 2.5);
+            --sidebar-width: calc(var(--base-unit) * 12);
+            --stub-width: calc(var(--base-unit) * 3);
+
+            --border-radius-outer: calc(var(--base-unit) * 2.5);
+            --border-radius-pill: 50em;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-on-dark);
+            font-family: 'Antonio', sans-serif;
+            text-transform: uppercase;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .lcars-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            padding: var(--padding);
+            box-sizing: border-box;
+            gap: var(--gap);
+        }
+        
+        .lcars-element {
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            box-sizing: border-box;
+            color: var(--text-on-color);
+        }
+
+        .lcars-sidebar, .lcars-column {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap);
+        }
+        .lcars-sidebar {
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
+            height: 100%;
+        }
+        .lcars-column { flex-grow: 1; min-width: 0; min-height: 0; }
+
+        .lcars-row { display: flex; gap: var(--gap); flex-grow: 1; min-width: 0; min-height: 0; }
+
+        .lcars-content-frame {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            gap: var(--gap);
+            min-width: 0; 
+            min-height: 0;
+        }
+
+        .lcars-elbow {
+            width: 100%;
+            height: var(--frame-thick-dim);
+            padding: 0 calc(var(--base-unit) * 1.5);
+        }
+        .lcars-elbow.top-left { border-top-left-radius: var(--border-radius-outer); }
+        .lcars-elbow.bottom-left { border-bottom-left-radius: var(--border-radius-outer); }
+        .lcars-elbow.top-right { border-top-right-radius: var(--border-radius-outer); text-align: right; justify-content: flex-end; }
+        .lcars-elbow.bottom-right { border-bottom-right-radius: var(--border-radius-outer); text-align: right; justify-content: flex-end; }
+        
+        .lcars-bar { flex-grow: 1; padding: 0 var(--base-unit); gap: var(--gap); align-items: center; min-width: 0; }
+        
+        .lcars-bar-container {
+            display: flex;
+            width: 100%;
+            gap: var(--gap);
+            align-items: stretch;
+            height: var(--frame-thick-dim);
+        }
+        
+        .lcars-bar-container > .lcars-elbow { width: var(--sidebar-width); min-width: var(--sidebar-width); }
+
+        .lcars-stub { height: var(--frame-thick-dim); width: var(--stub-width); min-width: var(--stub-width); }
+        .lcars-stub.left { border-radius: var(--border-radius-pill) 0 0 var(--border-radius-pill); }
+        .lcars-stub.right { border-radius: 0 var(--border-radius-pill) var(--border-radius-pill) 0; }
+        
+        .lcars-button {
+            height: var(--frame-thin-dim);
+            width: 100%;
+            padding: 0 calc(var(--base-unit) * 0.9);
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: filter 0.2s ease-in-out;
+            white-space: nowrap;
+        }
+        .lcars-button:hover { filter: brightness(1.25); }
+
+        .lcars-button.sidebar-button-left { border-radius: 0 var(--border-radius-pill) var(--border-radius-pill) 0; }
+        .lcars-button.sidebar-button-right { border-radius: var(--border-radius-pill) 0 0 var(--border-radius-pill); text-align: right; justify-content: flex-end; }
+        .lcars-button.pill { border-radius: var(--border-radius-pill); justify-content: center; }
+
+        .lcars-button-text { text-overflow: ellipsis; overflow: hidden; line-height: 1; }
+        .lcars-button.pill .lcars-button-text { flex-grow: 0; }
+        
+        .lcars-title { font-size: 1.5rem; font-weight: 700; letter-spacing: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .lcars-button-bar { display: flex; justify-content: center; gap: var(--gap); width: 100%; height: var(--frame-thin-dim); }
+        .lcars-button-bar > .lcars-button { width: auto; flex-shrink: 0; padding: 0 calc(var(--base-unit) * 1.5); }
+        .lcars-button-bar .lcars-button-text { overflow: visible; }
+
+        .lcars-gap { flex-grow: 1; }
+
+        .lcars-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex-grow: 1;
+            padding: calc(var(--base-unit) * 1.5);
+            overflow: hidden;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            border: 2px solid transparent;
+            position: relative;
+        }
+        
+        .center-text { justify-content: center; text-align: center; }
+
+        @keyframes scrollData { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+        .lcars-data-stream-wrapper { animation: scrollData 30s linear infinite; width: 100%; }
+        .lcars-data-stream {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 0.2em 1.5em;
+            font-size: 1rem;
+        }
+        .lcars-data-stream span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; }
+
+        .lcars-log-entry {
+            padding: var(--padding);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+        .lcars-log-entry h2 { margin: 0 0 0.5em 0; }
+        .lcars-log-entry p { margin: 0; font-size: 1.2rem; line-height: 1.5; white-space: normal; text-transform: none; }
+
+        .lcars-status-grid { 
+            display: grid; 
+            grid-template-columns: 32% 18% 32% 18%;
+            gap: var(--gap) 0;
+            height: 100%;
+            align-content: center;
+            font-size: clamp(0.9rem, 2.2vh, 1.4rem);
+        }
+        .status-item-label, .status-item-value {
+            padding: 0.6em 0.5em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .status-item-label { 
+            font-weight: 700;
+            text-align: right;
+        }
+        .status-item-value { text-align: left; }
+        
+        .lcars-alert-panel { display: flex; justify-content: center; align-items: center; height: 100%; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .lcars-alert-text { font-size: clamp(1.5rem, 6vw, 5rem); font-weight: 700; animation: pulse 2s infinite; text-align: center; }
+
+        .lcars-sequence-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            height: 100%;
+            gap: 1em;
+            font-size: clamp(1.1rem, 2.2vh, 1.5rem);
+            padding: 0 5%;
+        }
+        .sequence-item {
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+            display: flex;
+            justify-content: space-between;
+            gap: 1em;
+        }
+        .sequence-item > span:first-child {
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sequence-item > span:last-child {
+            flex-shrink: 0;
+        }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        @keyframes blink { 50% { opacity: 0; } }
+        .blinking-cursor { animation: blink 1s step-end infinite; }
+        
+        .targeting-bracket { 
+            position: relative; 
+            display: inline-block;
+        }
+        .targeting-bracket::before {
+            position: absolute;
+            content: '';
+            top: 0;
+            left: -0.5em;
+            height: 100%;
+            width: 0.25em;
+            background-color: var(--primary-color);
+            animation: pulse 1.5s infinite;
+            border-radius: var(--border-radius-pill) 0 0 var(--border-radius-pill);
+        }
+        
+        .lcars-power-level-panel { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-evenly; 
+            gap: 1em; 
+            height: 100%; 
+            padding: 0 5%; 
+        }
+        .power-level-bar-wrapper { 
+            display: flex; 
+            align-items: center; 
+            gap: 1em; 
+            font-size: 1.2rem;
+        }
+        .power-level-label { flex-basis: 30%; text-align: right; }
+        .power-level-bar { 
+            flex-grow: 1; 
+            height: 1.5em; 
+            display: flex; 
+            gap: 2px; 
+        }
+        .power-level-segment { flex-grow: 1; height: 100%; background-color: var(--tertiary-color); transition: background-color 0.3s ease-in-out; }
+        .power-level-segment.active { background-color: var(--primary-color); }
+        
+        .lcars-starmap-panel svg { width: 100%; height: 100%; }
+        .lcars-starmap-panel .orbit { stroke: var(--tertiary-color); stroke-width: 0.5; stroke-dasharray: 2, 4; fill: none; }
+        .lcars-starmap-panel .planet { fill: var(--quint-color); }
+        .lcars-starmap-panel .planet-label { fill: var(--secondary-color); font-size: calc(var(--base-unit) * 0.3); text-anchor: middle; }
+        .lcars-starmap-panel .star { fill: url(#star-gradient); }
+        
+        .lcars-decompile-panel { font-size: 1.1rem; line-height: 1.4; }
+        @keyframes scrollDecompile { from { transform: translateY(0); } to { transform: translateY(-20%); } }
+        .decompile-wrapper { animation: scrollDecompile 10s linear infinite; }
+        .decompile-line > span { display: inline-block; margin-right: 0.5em; }
+
+        .system-grid-panel { 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-end; 
+            height: 100%; 
+            gap: 1em; 
+            padding: var(--padding) 0; 
+        }
+        .system-bar-wrapper { 
+            flex-grow: 1; 
+            max-width: 80px;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-end; 
+            height: 100%; 
+        }
+        .system-bar { width: 80%; background-color: var(--primary-color); transition: height 0.3s ease-out; }
+        .system-label { 
+            margin-top: 0.5em; 
+            font-size: 0.9rem; 
+            white-space: nowrap;
+        }
+        
+        .lcars-personnel-panel { 
+            padding: var(--padding); 
+            display: grid; 
+            grid-template-columns: auto 1fr; 
+            gap: 1.5em var(--padding); 
+            height: 100%;
+            align-content: center;
+            font-size: 1.4rem;
+            min-width: 0;
+        }
+        .personnel-label { font-weight: 700; text-align: right; color: var(--secondary-color); }
+        .personnel-data {
+            color: var(--quint-color);
+            white-space: normal;
+            word-break: break-word;
+        }
+        
+        .lcars-integrity-panel {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            align-content: center;
+            gap: 1em 1.5em;
+            font-size: clamp(1.1rem, 2.3vh, 1.5rem);
+        }
+        .integrity-label {
+            text-align: right;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+        .integrity-percent, .integrity-status {
+            text-align: left;
+        }
+        .integrity-percent {
+             color: var(--quint-color);
+        }
+        .integrity-status {
+             color: var(--primary-color);
+        }
+
+        .lcars-geo-scan-panel svg { width: 100%; height: 100%; overflow: visible; }
+        .lcars-geo-scan-panel .scan-ring { fill: none; stroke: var(--accent-color); stroke-width: 1; transform-origin: center; animation: rotate-scan 10s linear infinite; }
+        .lcars-geo-scan-panel .scan-reticle-line { stroke: var(--quad-color); stroke-width: 0.5; }
+        .lcars-geo-scan-panel .scan-text { fill: var(--secondary-color); font-size: calc(var(--base-unit) * 0.7); text-anchor: middle; }
+        .lcars-geo-scan-panel .scan-planet { fill: url(#planet-gradient); }
+
+        .lcars-subspace-panel { display: flex; flex-direction: column; justify-content: space-evenly; gap: 0.8em; height: 100%; }
+        .subspace-bar-wrapper { display: flex; align-items: center; gap: 1em; }
+        .subspace-bar-label { flex-basis: 35%; text-align: right; color: var(--secondary-color); font-size: 1rem; }
+        .subspace-bar { flex-grow: 1; height: 1.2em; background-color: var(--tertiary-color); position: relative; overflow: hidden; }
+        .subspace-bar-fill { position: absolute; top: 0; left: 0; height: 100%; background-color: var(--accent-color); animation: subspace-fluctuate 4s ease-in-out infinite; }
+        @keyframes subspace-fluctuate { 
+            0% { width: 30%; } 
+            50% { width: 80%; } 
+            100% { width: 30%; }
+        }
+
+        .lcars-warp-diagnostic-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1em 2em;
+            align-content: center;
+            height: 100%;
+            font-size: 1.3rem;
+        }
+        .warp-diagnostic-label {
+            font-weight: 700;
+            text-align: right;
+            color: var(--secondary-color);
+        }
+        .warp-diagnostic-value {
+            text-align: left;
+            color: var(--primary-color);
+        }
+
+        .lcars-tactical-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            font-size: 1.2rem;
+        }
+        .tactical-grid-header, .tactical-grid-row {
+            display: grid;
+            grid-template-columns: 0.8fr 1.5fr 1fr 1fr;
+            gap: 1em;
+            padding: 0.5em 0;
+            border-bottom: 2px solid var(--tertiary-color);
+        }
+        .tactical-grid-header {
+            font-weight: 700;
+            color: var(--secondary-color);
+            border-bottom-width: 3px;
+        }
+        .tactical-grid-row > span {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .tactical-grid-row .tactical-data {
+            color: var(--quint-color);
+        }
+        .tactical-grid-row .tactical-data.hostile {
+            color: var(--quad-color);
+            animation: pulse 1.5s infinite;
+        }
+
+
+        .bg-primary { background-color: var(--primary-color); }
+        .bg-secondary { background-color: var(--secondary-color); }
+        .bg-tertiary { background-color: var(--tertiary-color); }
+        .bg-quad { background-color: var(--quad-color); }
+        .bg-quint { background-color: var(--quint-color); }
+        .bg-accent { background-color: var(--accent-color); }
+        
+        .text-on-dark { color: var(--text-on-dark); }
+        .text-on-dark.text-primary { color: var(--primary-color); }
+        .text-on-dark.text-secondary { color: var(--secondary-color); }
+        .text-on-dark.text-tertiary { color: var(--tertiary-color); }
+        .text-on-dark.text-accent { color: var(--accent-color); }
+        .text-on-dark.text-quint { color: var(--quint-color); }
+
+        .border-primary { border-color: var(--primary-color); }
+        .border-secondary { border-color: var(--secondary-color); }
+        .border-tertiary { border-color: var(--tertiary-color); }
+        .border-quad { border-color: var(--quad-color); }
+        .border-quint { border-color: var(--quint-color); }
+        .border-accent { border-color: var(--accent-color); }
+    </style>
+</head>
+<body>
+    <main>
+        <div id="lcars-container" class="lcars-container"></div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let animationFrameId = null;
+            let slowTime = 0;
+
+            const colorClasses = ['bg-primary', 'bg-secondary', 'bg-tertiary', 'bg-quad', 'bg-quint', 'bg-accent'];
+            const lcarsTitles = ["SYSTEM STATUS", "OPERATIONAL LOG", "DIAGNOSTIC", "LIBRARY DATA", "ENGINEERING CORE", "TACTICAL DISPLAY", "SCIENCE STATION", "PERSONNEL FILES", "ASTROMETRICS", "MAIN COMPUTER", "SECURITY PROTOCOLS", "DAMAGE REPORT", "MISSION OBJECTIVES", "COMMUNICATIONS", "SENSOR ANALYSIS", "SHIELD MODULATION", "WARP FIELD DYNAMICS", "FLIGHT CONTROL", "ENVIRONMENTAL", "CARGO MANIFEST"];
+            const lcarsText = [ "EPS", "WARP", "SHIELDS", "SENSORS", "NAV-CON", "SUBSPACE", "INTEGRITY", "OPS", "ASTRO", "TACTICAL", "STARDATE", "LOG", "DECK-A", "COMMS", "IMPULSE", "PHASER", "TORPEDO", "DEFLECTOR", "TRANSPORTER", "WARP FIELD", "LIFE SUPPORT", "PROBE BAY", "CARGO BAY", "GRAVITY", "INERTIAL", "COMPUTER", "SECURITY", "DAMAGE", "REPLICATOR", "HOLODECK", "STELLAR", "SENSOR", "MAIN POWER", "AUX POWER", "TRICORDER", "ISOLINEAR", "PLASMA", "COILS", "MATRIX"];
+            const dataStreamStatus = ["STABLE", "NOMINAL", "ACTIVE", "REROUTING", "STANDBY", "OFFLINE", "CAUTION", "OPTIMAL", "FLUCTUATING", "ALERT", "COMPENSATING", "CALIBRATING"];
+            const logEntries = ["Captain's Log, supplemental. We have entered the Typhon Expanse. Long-range sensors are picking up anomalous energy readings which Commander Data is currently analyzing.", "Chief Engineer's Log. The dilithium matrix has been recalibrated. Warp core efficiency is now operating at 102% of established parameters. I've advised the Captain we are ready for extended high-warp travel.", "Medical Log, Doctor Crusher reporting. Ensign Smith has made a full recovery from his encounter with the Tarkonian flu. I'm releasing him for duty.", "Security Chief's Log. We conducted a full sweep of decks 8 through 12. No security anomalies to report. All systems are green.", "Science Officer's Log. The nebula's particle density is higher than anticipated. Adjusting sensor harmonics to compensate for the interference."];
+            const scienceTerms = ["ANOMALY", "NEBULA", "CLUSTER", "SUBSPACE", "QUANTUM", "PARTICLE", "RADIATION", "CHRONITON", "POSITRON", "TETRYON", "SPECTRAL", "GRAVIMETRIC", "METAPHASIC", "INVERSION", "FIELD", "SINGULARITY", "WORMHOLE", "EXOPLANET", "PULSAR", "QUASAR", "DARK MATTER", "EVENT HORIZON", "SPATIAL RIFT", "BARYON", "MESON"];
+            const engineeringTerms = ["DILITHIUM", "WARP CORE", "PLASMA", "CONDUIT", "INJECTOR", "MATRIX", "RELAY", "EPS", "FIELD", "REGULATOR", "COOLANT", "NACELLE", "BUSSARD", "COIL", "ANTIMATTER", "CONTAINMENT", "EMITTER", "FREQUENCY", "HARMONICS", "POWER TRANSFER", "SYNCHROTRON", "DEUTERIUM", "TRITIUM", "HEISENBERG"];
+            const commandTerms = ["RENDEZVOUS", "SECTOR", "COORDINATES", "DIRECTIVE", "PROTOCOL", "ENGAGE", "STANDBY", "STRATEGY", "MANEUVER", "PRIORITY", "CHANNEL", "ENCRYPTION", "AUTHORIZATION", "LOG", "VESSEL", "ETA", "HOSTILE", "NEUTRAL ZONE", "FEDERATION", "STARFLEET", "TREATY", "CEASE FIRE", "ARMISTICE", "QUARANTINE"];
+            const personnelRanks = ["Captain", "Commander", "Lt. Commander", "Lieutenant", "Ensign", "Chief Petty Officer", "Crewman"];
+            const personnelSpecies = ["Human", "Vulcan", "Betazoid", "Klingon", "Andorian", "Trill", "Bajoran", "Cardassian", "Ferengi"];
+            const personnelAssignments = ["Command", "Operations", "Engineering", "Science", "Medical", "Security", "Flight Control"];
+            const starQuadrants = ["Alpha", "Beta", "Gamma", "Delta"];
+            const starClasses = ["O", "B", "A", "F", "G", "K", "M", "L", "T", "Y"];
+            const planetNames = ["Sol", "Andoria", "Vulcan", "Qo'noS", "Bajor", "Cardassia", "Ferenginar", "Betazed", "Risa"];
+            const geologicalReadings = ["TECTONIC STRESS", "MAGMA RESERVOIR", "SEISMIC ACTIVITY", "MINERAL DEPOSIT", "SUBSURFACE WATER", "CAVERN SYSTEM"];
+            const subspaceFrequencies = ["OMEGA PARTICLE", "VERTERON PULSE", "TETRYON FIELD", "CHRONITON EMISSIONS", "METAPHASIC RADIATION", "INFRASONIC WAVES", "ANTIPROTON BEAM"];
+
+            // --- UTILITY FUNCTIONS ---
+            function getRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+            function getRandomNumber(min, max, decimals = 3) { return (Math.random() * (max - min) + min).toFixed(decimals); }
+            function getRandomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+            function getStardate() {
+                const now = new Date();
+                const startOfTNG = new Date('1987-09-28T00:00:00Z');
+                const tngEpoch = 41000;
+                const msPerStardate = 315569520;
+                const elapsedMs = now - startOfTNG;
+                const stardate = tngEpoch + (elapsedMs / msPerStardate) * 1000;
+                return stardate.toFixed(2);
+            }
+            function createEl(tag, classes = [], content = '') {
+                const el = document.createElement(tag);
+                el.classList.add(...classes.filter(c => c));
+                if (content) el.innerHTML = content;
+                return el;
+            }
+
+
+            // --- DYNAMIC CONTENT GENERATORS ---
+            function createDataStream() {
+                let stream = '';
+                const lines = getRandomInt(10, 20); const columns = 12;
+                for (let i = 0; i < lines * columns * 2; i++) {
+                    const dataType = Math.random();
+                    if (dataType > 0.8) stream += `<span class="text-on-dark text-primary">${getRandom(lcarsText.concat(scienceTerms))}</span>`;
+                    else if (dataType > 0.5) stream += `<span class="text-on-dark text-secondary">${getRandomNumber(100, 999, 2)}</span>`;
+                    else if (dataType > 0.2) stream += `<span class="text-on-dark text-accent">${getRandomNumber(0, 1, 4)}</span>`;
+                    else stream += `<span class="text-on-dark text-quint">${getRandom(dataStreamStatus)}</span>`;
+                }
+                const duration = getRandomInt(25, 50);
+                return `<div class="lcars-data-stream-wrapper" style="animation-duration: ${duration}s;"><div class="lcars-data-stream">${stream}</div></div>`;
+            }
+            function createStatusPanel() {
+                let panel = '<div class="lcars-status-grid">';
+                const systems = ["WARP CORE", "SHIELDS", "SENSORS", "LIFE SUPPORT", "NAVIGATION", "TRANSPORTERS", "DEFLECTOR", "PHASERS"];
+                for (const system of systems) {
+                    panel += `<span class="status-item-label text-on-dark text-secondary">${system}</span>
+                            <span class="status-item-value dynamic-status-value text-on-dark text-primary">${getRandom(dataStreamStatus)}</span>`;
+                }
+                panel += '</div>';
+                return panel;
+            }
+            function createLogEntry() {
+                return `<div class="lcars-log-entry">
+                        <h2 class="text-on-dark text-primary">LOG ENTRY: <span class="dynamic-stardate">STARDATE ${getStardate()}</span></h2>
+                        <p class="text-on-dark text-quint">${getRandom(logEntries)} <span class="blinking-cursor">_</span></p>
+                    </div>`;
+            }
+            function createAlertPanel() {
+                const alerts = ["WARP CORE BREACH IMMINENT", "INTRUDER ALERT", "SHIELDS OFFLINE", "RED ALERT"];
+                const duration = getRandomNumber(1.5, 3);
+                return `<div class="lcars-alert-panel"><div class="lcars-alert-text text-on-dark text-primary" style="animation-duration: ${duration}s;">${getRandom(alerts)}</div></div>`;
+            }
+            function createSequencePanel() {
+                let panel = '<div class="lcars-sequence-panel">';
+                const items = ["ROUTING POWER", "CALIBRATING SENSORS", "VERIFYING COUPLINGS", "MATRIX ALIGNED", "SEQUENCE COMPLETE"];
+                items.forEach((item, i) => {
+                    const status = i < items.length - 1 ? getRandom(dataStreamStatus) : "COMPLETE";
+                    const isTargeted = i === getRandomInt(0, items.length - 2) ? 'targeting-bracket' : '';
+                    panel += `<div class="sequence-item" style="animation-delay: ${i * 0.2}s"><span class="${isTargeted}">${getRandom(engineeringTerms)}...</span><span>[${status}]</span></div>`;
+                });
+                panel += '</div>';
+                return panel;
+            }
+            function createIntegrityReportPanel() {
+                let panel = '<div class="lcars-integrity-panel">';
+                const systems = ["HULL PLATING", "STRUCTURAL FIELD", "DECK 08", "CONTAINMENT", "TRUSS E-14", "OUTER HULL"];
+                systems.forEach(system => {
+                    const isDynamic = system === "STRUCTURAL FIELD" ? "dynamic-percent" : "";
+                    panel += `<div class="integrity-label">${system}</div>
+                              <div class="integrity-percent ${isDynamic}">${getRandomNumber(99, 100, 2)}%</div>
+                              <div class="integrity-status">[NOMINAL]</div>`;
+                });
+
+                panel += '</div>';
+                return panel;
+            }
+            function createPowerLevelPanel() {
+                let panel = '<div class="lcars-power-level-panel">';
+                const systems = ["WARP DRIVE", "SHIELDS", "PHASERS", "SENSORS", "LIFE SUPPORT"];
+                for (const system of systems) {
+                    const level = getRandomInt(10, 100);
+                    let segments = '';
+                    const numSegments = 12;
+                    const activeSegments = Math.round((level / 100) * numSegments);
+                    for (let i = 0; i < numSegments; i++) {
+                        segments += `<div class="power-level-segment ${i < activeSegments ? 'active' : ''}"></div>`;
+                    }
+
+                    panel += `<div class="power-level-bar-wrapper">
+                            <div class="power-level-label text-on-dark text-secondary">${system}</div>
+                            <div class="power-level-bar" data-level="${level}">${segments}</div>
+                        </div>`;
+                }
+                panel += '</div>';
+                return panel;
+            }
+            function createPersonnelPanel() {
+                 return `<div class="lcars-personnel-panel">
+                            <div class="personnel-label">NAME:</div><div class="personnel-data">${getRandom(["Smith, J.", "T'Pol", "Garak", "Nog", "Dax, E."])}</div>
+                            <div class="personnel-label">RANK:</div><div class="personnel-data">${getRandom(personnelRanks)}</div>
+                            <div class="personnel-label">SPECIES:</div><div class="personnel-data">${getRandom(personnelSpecies)}</div>
+                            <div class="personnel-label">ASSIGNMENT:</div><div class="personnel-data">${getRandom(personnelAssignments)}</div>
+                            <div class="personnel-label">STATUS:</div><div class="personnel-data dynamic-status-value">${getRandom(dataStreamStatus)}</div>
+                        </div>`;
+            }
+             function createStarmapPanel() {
+                let planets = '';
+                const numPlanets = getRandomInt(3, 6);
+                const center = 50;
+                const maxRadius = 40; // Reduced to provide margin for labels
+
+                for (let i = 0; i < numPlanets; i++) {
+                    const orbitRadius = (maxRadius / numPlanets) * (i + 0.8) + 5;
+                    const r = getRandomNumber(1.5, 3.5);
+                    const animDuration = 10 + i * 5; 
+                    
+                    planets += `<circle class="orbit" cx="${center}" cy="${center}" r="${orbitRadius}"/>`;
+                    planets += `<g class="orbiting-body" data-radius="${orbitRadius}" data-speed="${360 / animDuration}" data-initial-angle="${getRandomInt(0, 360)}">
+                        <circle class="planet" r="${r}"/>
+                        <text class="planet-label">${getRandom(planetNames)}-${i+1}</text>
+                    </g>`;
+                }
+
+                return `<div class="lcars-starmap-panel">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <radialGradient id="star-gradient">
+                                <stop offset="0%" stop-color="var(--quint-color)" />
+                                <stop offset="50%" stop-color="var(--primary-color)" />
+                                <stop offset="100%" stop-color="rgba(255, 153, 0, 0)" />
+                            </radialGradient>
+                        </defs>
+                        <circle class="star" cx="${center}" cy="${center}" r="8"/>
+                        ${planets}
+                    </svg>
+                </div>`;
+            }
+            function createDecompilePanel() {
+                let content = '<div class="decompile-wrapper">';
+                for (let i = 0; i < 20 * 2; i++) {
+                    const address = `0x${(getRandomInt(4096, 65535) + i * 256).toString(16).toUpperCase()}`;
+                    let data = '';
+                    const dataType = Math.random();
+                    if(dataType > 0.6) { // Hex
+                        for(let j=0; j<8; j++) data += `${getRandomInt(0,255).toString(16).padStart(2, '0')} `;
+                    } else if (dataType > 0.3) { // Binary
+                         for(let j=0; j<4; j++) data += `${getRandomInt(0,255).toString(2).padStart(8, '0')} `;
+                    } else { // ASCII
+                        for(let j=0; j<12; j++) data += Math.random() > 0.5 ? getRandom(lcarsText).charAt(0) : '.';
+                    }
+                    content += `<div class="decompile-line">
+                                <span class="text-on-dark text-tertiary">${address}</span>
+                                <span class="text-on-dark ${getRandom(['text-primary', 'text-secondary', 'text-quint'])}">${data}</span>
+                               </div>`;
+                }
+                const duration = getRandomInt(8, 15);
+                content += '</div>'
+                return `<div class="lcars-decompile-panel" style="animation-duration: ${duration}s;">${content}</div>`;
+            }
+            function createSystemGridPanel() {
+                let content = '';
+                const numBars = getRandomInt(4, 8);
+                for (let i = 0; i < numBars; i++) {
+                    const height = getRandomInt(10, 100);
+                    content += `<div class="system-bar-wrapper">
+                                 <div class="system-bar" style="height: ${height}%; background-color: var(--${getRandom(['primary', 'secondary', 'tertiary', 'quint'])}-color);"></div>
+                                 <div class="system-label text-on-dark text-secondary">${getRandom(lcarsText)}</div>
+                               </div>`;
+                }
+                return `<div class="system-grid-panel">${content}</div>`;
+            }
+            function createSubspacePanel() {
+                let panel = '<div class="lcars-subspace-panel">';
+                const numBands = getRandomInt(5, 8);
+                for(let i=0; i < numBands; i++) {
+                    const animDuration = getRandomNumber(2, 5);
+                    panel += `<div class="subspace-bar-wrapper">
+                                <div class="subspace-bar-label">${getRandom(subspaceFrequencies)}</div>
+                                <div class="subspace-bar">
+                                    <div class="subspace-bar-fill" style="animation-duration: ${animDuration}s; animation-delay: -${getRandomNumber(0, animDuration)}s;"></div>
+                                </div>
+                              </div>`;
+                }
+                panel += '</div>';
+                return panel;
+            }
+            function createGeologicalScanPanel() {
+                const duration = getRandomInt(8, 15);
+                return `<div class="lcars-geo-scan-panel">
+                    <svg viewBox="-10 -10 120 120" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <radialGradient id="planet-gradient">
+                                <stop offset="0%" stop-color="var(--quad-color)" />
+                                <stop offset="100%" stop-color="var(--bg-color)" />
+                            </radialGradient>
+                        </defs>
+                        <circle class="scan-planet" cx="50" cy="50" r="40"/>
+                        <circle class="scan-ring" r="45" cx="50" cy="50" style="animation-duration: ${duration}s; animation-delay: -${duration/2}s;"/>
+                        <circle class="scan-ring" r="60" cx="50" cy="50" style="animation-duration: ${duration}s;" />
+                        <g class="dynamic-reticle">
+                            <line class="scan-reticle-line" x1="50" y1="-5" x2="50" y2="10"/>
+                            <line class="scan-reticle-line" x1="50" y1="90" x2="50" y2="105"/>
+                            <line class="scan-reticle-line" x1="-5" y1="50" x2="10" y2="50"/>
+                            <line class="scan-reticle-line" x1="90" y1="50" x2="105" y2="50"/>
+                        </g>
+                        <text class="scan-text dynamic-scan-text" x="50" y="55">${getRandom(geologicalReadings)}</text>
+                    </svg>
+                </div>`;
+            }
+            function createWarpDiagnosticPanel() {
+                const metrics = {
+                    "FIELD SYMMETRY": `${getRandomNumber(98, 100, 2)}%`,
+                    "NACELLE COHERENCE": getRandom(dataStreamStatus),
+                    "POWER OUTPUT (GW)": getRandomNumber(1200, 1500, 1),
+                    "SUBSPACE STRESS": `${getRandomNumber(0.01, 0.5, 4)}`,
+                    "COCHRANE FACTOR": getRandomNumber(1.0, 9.9, 2),
+                    "TRANSITION THRESHOLD": "NOMINAL"
+                };
+                let panel = '<div class="lcars-warp-diagnostic-panel">';
+                for (const [label, value] of Object.entries(metrics)) {
+                    panel += `<div class="warp-diagnostic-label">${label}</div>
+                              <div class="warp-diagnostic-value dynamic-status-value">${value}</div>`;
+                }
+                panel += '</div>';
+                return panel;
+            }
+            function createTacticalDisplayPanel() {
+                let panel = `<div class="lcars-tactical-panel">
+                                <div class="tactical-grid-header">
+                                    <span>ID</span>
+                                    <span>BEARING</span>
+                                    <span>RANGE (km)</span>
+                                    <span>STATUS</span>
+                                </div>`;
+                const numTargets = getRandomInt(3, 5);
+                for (let i = 0; i < numTargets; i++) {
+                    const status = getRandom(['NEUTRAL', 'HOSTILE', 'UNKNOWN']);
+                    panel += `<div class="tactical-grid-row">
+                                <span class="tactical-data">${getRandom(starClasses)}-${getRandomInt(1000,9999)}</span>
+                                <span class="tactical-data">${getRandomNumber(0,359,3)} &deg; MARK ${getRandomNumber(0,90,2)}</span>
+                                <span class="tactical-data">${getRandomInt(10000, 90000)}</span>
+                                <span class="tactical-data ${status === 'HOSTILE' ? 'hostile' : ''}">${status}</span>
+                              </div>`;
+                }
+                 panel += '</div>';
+                 return panel;
+            }
+
+            const contentFunctions = [
+                { name: 'stream', func: createDataStream, types: ['large', 'text-heavy'] },
+                { name: 'status', func: createStatusPanel, types: ['large', 'text-heavy'] },
+                { name: 'log', func: createLogEntry, types: ['any', 'text-heavy'] },
+                { name: 'alert', func: createAlertPanel, types: ['any'] },
+                { name: 'sequence', func: createSequencePanel, types: ['tall', 'text-heavy'] },
+                { name: 'integrity', func: createIntegrityReportPanel, types: ['large', 'text-heavy'] },
+                { name: 'power', func: createPowerLevelPanel, types: ['tall'] },
+                { name: 'personnel', func: createPersonnelPanel, types: ['large', 'text-heavy'] },
+                { name: 'starmap', func: createStarmapPanel, types: ['any', 'visual'] },
+                { name: 'decompile', func: createDecompilePanel, types: ['large', 'text-heavy'] },
+                { name: 'grid', func: createSystemGridPanel, types: ['wide', 'visual'] },
+                { name: 'subspace', func: createSubspacePanel, types: ['tall'] },
+                { name: 'geo', func: createGeologicalScanPanel, types: ['any', 'visual'] },
+                { name: 'warp', func: createWarpDiagnosticPanel, types: ['large', 'text-heavy'] },
+                { name: 'tactical', func: createTacticalDisplayPanel, types: ['large', 'visual'] },
+            ];
+
+            function getRandomContent(usedTypes = [], preference = 'any') {
+                let availableFunctions = contentFunctions.filter(f => !usedTypes.includes(f.name));
+                if (availableFunctions.length === 0) {
+                    usedTypes.length = 0;
+                    availableFunctions = contentFunctions;
+                }
+                let preferredFunctions = availableFunctions.filter(f => f.types.includes(preference));
+                if (preferredFunctions.length === 0) {
+                    preferredFunctions = availableFunctions.filter(f => f.types.includes('any'));
+                }
+                if (preferredFunctions.length === 0) {
+                    preferredFunctions = availableFunctions;
+                }
+                const chosen = getRandom(preferredFunctions);
+                usedTypes.push(chosen.name);
+                return chosen.func();
+            }
+
+
+            // --- DYNAMIC COMPONENT BUILDERS ---
+            function createButtons(count, type) {
+                let buttons = '';
+                for (let i = 0; i < count; i++) {
+                    const text = `<span class="lcars-button-text">${getRandom(lcarsText)}</span>`;
+                    buttons += `<div class="lcars-element lcars-button ${type} ${getRandom(colorClasses)}">${text}</div>`;
+                }
+                return buttons;
+            }
+            function createHeader(title = getRandom(lcarsTitles)) {
+                const header = createEl('div', ['lcars-bar-container']);
+                const hasStub = Math.random() > 0.5;
+                const stubSide = Math.random() > 0.5 ? 'left' : 'right';
+                const stubHTML = `<div class="lcars-element lcars-stub ${stubSide} ${getRandom(colorClasses)}"></div>`;
+                const titleHTML = `<div class="lcars-element lcars-bar ${getRandom(colorClasses)} center-text"><h1 class="lcars-title">${title}</h1></div>`;
+                if (hasStub) header.innerHTML = stubSide === 'left' ? stubHTML + titleHTML : titleHTML + stubHTML;
+                else header.innerHTML = titleHTML;
+                return header;
+            }
+            function createFooter() {
+                const footer = createEl('div');
+                footer.innerHTML = `<div class="lcars-button-bar">${createButtons(getRandomInt(2, 4), 'pill')}</div>`;
+                return footer;
+            }
+            function createSidebar(position, buttonCount) {
+                const sidebar = createEl('div', ['lcars-sidebar']);
+                const elbowTopClass = position === 'left' ? 'top-left' : 'top-right';
+                const elbowBottomClass = position === 'left' ? 'bottom-left' : 'bottom-right';
+                const buttonClass = position === 'left' ? 'sidebar-button-left' : 'sidebar-button-right';
+                
+                let items = [];
+                for (let i = 0; i < buttonCount; i++) {
+                    const text = `<span class="lcars-button-text">${getRandom(lcarsText)}</span>`;
+                    items.push(`<div class="lcars-element lcars-button ${buttonClass} ${getRandom(colorClasses)}">${text}</div>`);
+                }
+
+                if (items.length > 1) {
+                    const gapIndex = getRandomInt(1, items.length - 1);
+                    items.splice(gapIndex, 0, '<div class="lcars-gap"></div>');
+                } else {
+                    items.push('<div class="lcars-gap"></div>');
+                }
+
+                sidebar.innerHTML = `
+                    <div class="lcars-element lcars-elbow ${elbowTopClass} ${getRandom(colorClasses)}"><div class="lcars-title center-text">${getRandomInt(100,999)}</div></div>
+                    ${items.join('')}
+                    <div class="lcars-element lcars-elbow ${elbowBottomClass} ${getRandom(colorClasses)}"></div>`;
+                return sidebar;
+            }
+
+            // --- HAND-CRAFTED LAYOUTS ---
+            const layoutFunctions = [
+                function generateLayout1(usedContentTypes) {
+                    const container = document.getElementById('lcars-container');
+                    const leftSidebar = createSidebar('left', 5);
+                    const contentFrame = createEl('div', ['lcars-content-frame']);
+                    contentFrame.appendChild(createHeader());
+                    const content = createEl('div', ['lcars-content', 'border-primary']);
+                    content.innerHTML = getRandomContent(usedContentTypes, 'large');
+                    contentFrame.appendChild(content);
+                    contentFrame.appendChild(createFooter());
+                    container.appendChild(leftSidebar);
+                    container.appendChild(contentFrame);
+                },
+                function generateLayout2(usedContentTypes) {
+                    const container = document.getElementById('lcars-container');
+                    container.appendChild(createSidebar('left', 3));
+                    const contentFrame = createEl('div', ['lcars-content-frame']);
+                    const content = createEl('div', ['lcars-content', 'border-tertiary']);
+                    content.innerHTML = getRandomContent(usedContentTypes, 'large');
+                    contentFrame.appendChild(content);
+                    contentFrame.appendChild(createFooter());
+                    container.appendChild(contentFrame);
+                    container.appendChild(createSidebar('right', 4));
+                },
+                 function generateLayout3(usedContentTypes) {
+                    const container = document.getElementById('lcars-container');
+                    const contentFrame = createEl('div', ['lcars-content-frame']);
+                    contentFrame.appendChild(createHeader());
+                    const content = createEl('div', ['lcars-content', 'border-quad']);
+                    content.innerHTML = getRandomContent(usedContentTypes, 'large');
+                    contentFrame.appendChild(content);
+                    const footerBar = createEl('div', ['lcars-bar-container']);
+                    footerBar.innerHTML = `<div class="lcars-element lcars-elbow bottom-left ${getRandom(colorClasses)}"></div>
+                                           <div class="lcars-element lcars-bar center-text">${createButtons(2,'pill')}</div>
+                                           <div class="lcars-element lcars-elbow bottom-right ${getRandom(colorClasses)}"></div>`;
+                    contentFrame.appendChild(footerBar);
+                    container.appendChild(contentFrame);
+                },
+                 function generateLayout4(usedContentTypes) {
+                    const container = document.getElementById('lcars-container');
+                    const sidebar = createSidebar('left', 6);
+                    const contentFrame = createEl('div', ['lcars-content-frame']);
+                    contentFrame.appendChild(createHeader());
+                    const content = createEl('div', ['lcars-content', 'border-quint']);
+                    content.innerHTML = getRandomContent(usedContentTypes, 'large');
+                    contentFrame.appendChild(content);
+                    container.appendChild(sidebar);
+                    container.appendChild(contentFrame);
+                },
+                function generateLayout5(usedContentTypes) { // Two content panels
+                    const container = document.getElementById('lcars-container');
+                    container.appendChild(createSidebar('left', 4));
+                    const contentFrame = createEl('div', ['lcars-content-frame']);
+                    contentFrame.appendChild(createHeader());
+                    const row = createEl('div', ['lcars-row']);
+                    const content1 = createEl('div', ['lcars-content', 'border-secondary']);
+                    content1.innerHTML = getRandomContent(usedContentTypes, 'tall');
+                    const content2 = createEl('div', ['lcars-content', 'border-accent']);
+                    content2.innerHTML = getRandomContent(usedContentTypes, 'tall');
+                    row.appendChild(content1);
+                    row.appendChild(content2);
+                    contentFrame.appendChild(row);
+                    container.appendChild(contentFrame);
+                },
+                function generateLayout6(usedContentTypes) { // Main content and smaller sub-panel
+                    const container = document.getElementById('lcars-container');
+                    const contentFrame = createEl('div', ['lcars-content-frame']);
+                    contentFrame.appendChild(createHeader("SYSTEM ANALYSIS"));
+                    
+                    const mainContent = createEl('div', ['lcars-content', 'border-primary']);
+                    mainContent.style.flexGrow = '3';
+                    mainContent.innerHTML = getRandomContent(usedContentTypes, 'large');
+                    
+                    const subContent = createEl('div', ['lcars-content', 'border-tertiary']);
+                     subContent.style.flexGrow = '1';
+                    subContent.innerHTML = getRandomContent(usedContentTypes, 'wide');
+                    
+                    contentFrame.appendChild(mainContent);
+                    contentFrame.appendChild(subContent);
+                    contentFrame.appendChild(createFooter());
+                    container.appendChild(contentFrame);
+                    container.appendChild(createSidebar('right', 5));
+                },
+                function generateLayout7(usedContentTypes) { // two vertical columns
+                    const container = document.getElementById('lcars-container');
+                    const mainFrame = createEl('div', ['lcars-content-frame']);
+                    mainFrame.appendChild(createHeader());
+
+                    const row = createEl('div', ['lcars-row']);
+                    const col1 = createEl('div', ['lcars-column']);
+                    const col2 = createEl('div', ['lcars-column']);
+
+                    const content1 = createEl('div', ['lcars-content', 'border-quad']);
+                    content1.innerHTML = getRandomContent(usedContentTypes, 'wide');
+                    const content2 = createEl('div', ['lcars-content', 'border-quint']);
+                    content2.innerHTML = getRandomContent(usedContentTypes, 'wide');
+                     const content3 = createEl('div', ['lcars-content', 'border-primary']);
+                    content3.innerHTML = getRandomContent(usedContentTypes, 'tall');
+
+                    col1.appendChild(content1);
+                    col1.appendChild(content2);
+                    col2.appendChild(content3);
+                    row.appendChild(col1);
+                    row.appendChild(col2);
+
+                    mainFrame.appendChild(row);
+                    container.appendChild(mainFrame);
+                },
+                function generateLayout8(usedContentTypes) { // Captain's View
+                    const container = document.getElementById('lcars-container');
+                    container.appendChild(createSidebar('left', 6));
+                    const mainFrame = createEl('div', ['lcars-content-frame']);
+                    
+                    const topPanel = createEl('div', ['lcars-content', 'border-primary']);
+                    topPanel.style.flexGrow = 3;
+                    topPanel.innerHTML = getRandomContent(usedContentTypes, 'visual');
+
+                    const bottomRow = createEl('div', ['lcars-row']);
+                    bottomRow.style.flexGrow = 1;
+
+                    const bottomLeft = createEl('div', ['lcars-content', 'border-secondary']);
+                    bottomLeft.innerHTML = getRandomContent(usedContentTypes, 'any');
+
+                    const bottomRight = createEl('div', ['lcars-content', 'border-accent']);
+                    bottomRight.innerHTML = getRandomContent(usedContentTypes, 'any');
+
+                    bottomRow.appendChild(bottomLeft);
+                    bottomRow.appendChild(bottomRight);
+
+                    mainFrame.appendChild(topPanel);
+                    mainFrame.appendChild(bottomRow);
+
+                    container.appendChild(mainFrame);
+                },
+                function generateLayout9(usedContentTypes) { // Science Station
+                    const container = document.getElementById('lcars-container');
+                    const mainFrame = createEl('div', ['lcars-content-frame']);
+                    mainFrame.appendChild(createHeader("SCIENCE STATION 04"));
+                    
+                    const row = createEl('div', ['lcars-row']);
+                    const col1 = createEl('div', ['lcars-column']);
+                    const col2 = createEl('div', ['lcars-column']);
+                    
+                    const panel1 = createEl('div', ['lcars-content', 'border-accent']);
+                    panel1.innerHTML = getRandomContent(usedContentTypes, 'visual');
+                    const panel2 = createEl('div', ['lcars-content', 'border-quad']);
+                    panel2.innerHTML = getRandomContent(usedContentTypes, 'text-heavy');
+                    const panel3 = createEl('div', ['lcars-content', 'border-quint']);
+                    panel3.innerHTML = getRandomContent(usedContentTypes, 'text-heavy');
+                    const panel4 = createEl('div', ['lcars-content', 'border-tertiary']);
+                    panel4.innerHTML = getRandomContent(usedContentTypes, 'any');
+
+                    col1.appendChild(panel1);
+                    col1.appendChild(panel2);
+                    col2.appendChild(panel3);
+                    col2.appendChild(panel4);
+                    row.appendChild(col1);
+                    row.appendChild(col2);
+
+                    mainFrame.appendChild(row);
+                    mainFrame.appendChild(createFooter());
+                    container.appendChild(mainFrame);
+                }
+            ];
+            
+            // --- ANIMATION & INITIALIZATION ---
+            function animationLoop(time) {
+                // FINAL FIX: Drastically reduced the increment to finally kill the excessive speed.
+                slowTime += 0.005;
+                document.querySelectorAll('.dynamic-number').forEach(el => { if(Math.random() > 0.99) el.textContent = getRandomNumber(100, 999, 0); });
+                document.querySelectorAll('.dynamic-stardate').forEach(el => { el.textContent = `STARDATE ${getStardate()}`; });
+                document.querySelectorAll('.dynamic-status-value').forEach(el => { if(Math.random() > 0.98) el.textContent = getRandom(dataStreamStatus); });
+                document.querySelectorAll('.dynamic-percent').forEach(el => { if(Math.random() > 0.95) el.textContent = `${getRandomNumber(99,100,2)}%`; });
+
+                const bracket = document.querySelector('.targeting-bracket');
+                if(bracket && Math.random() > 0.97) {
+                    const allItems = bracket.parentElement.querySelectorAll('.sequence-item span');
+                    if(allItems.length > 0) {
+                        bracket.classList.remove('targeting-bracket');
+                        getRandom(Array.from(allItems)).classList.add('targeting-bracket');
+                    }
+                }
+
+                document.querySelectorAll('.power-level-bar').forEach(bar => {
+                    if (Math.random() > 0.97) {
+                        const newLevel = getRandomInt(10, 100);
+                        const segments = bar.querySelectorAll('.power-level-segment');
+                        const numSegments = segments.length;
+                        const activeSegments = Math.round((newLevel / 100) * numSegments);
+                        segments.forEach((segment, i) => {
+                            segment.classList.toggle('active', i < activeSegments);
+                        });
+                    }
+                });
+
+                document.querySelectorAll('.system-bar').forEach(bar => {
+                    if (Math.random() > 0.95) {
+                        bar.style.height = `${getRandomInt(10, 100)}%`;
+                    }
+                });
+                
+                document.querySelectorAll('.dynamic-scan-text').forEach(el => {
+                    if (Math.random() > 0.98) {
+                        el.textContent = getRandom(geologicalReadings);
+                    }
+                });
+
+                document.querySelectorAll('.lcars-starmap-panel .orbiting-body').forEach(body => {
+                    const radius = parseFloat(body.dataset.radius);
+                    const speed = parseFloat(body.dataset.speed); // degrees per second
+                    const initialAngle = parseFloat(body.dataset.initialAngle); // degrees
+                    const planet = body.querySelector('.planet');
+                    const label = body.querySelector('.planet-label');
+                    
+                    if (!radius || !speed || !planet || !label) return;
+
+                    const angleDegrees = (initialAngle + (time / 1000) * speed) % 360;
+                    const angleRadians = angleDegrees * (Math.PI / 180);
+
+                    const center = 50;
+                    const cx = center + radius * Math.cos(angleRadians);
+                    const cy = center + radius * Math.sin(angleRadians);
+                    const r = parseFloat(planet.getAttribute('r')) || 2;
+
+                    planet.setAttribute('cx', cx);
+                    planet.setAttribute('cy', cy);
+
+                    label.setAttribute('x', cx);
+                    label.setAttribute('y', cy - r - 2);
+                });
+
+                animationFrameId = requestAnimationFrame(animationLoop);
+            }
+
+            function start() {
+                cancelAnimationFrame(animationFrameId);
+                const container = document.getElementById('lcars-container');
+                container.innerHTML = '';
+
+                const usedContentTypes = [];
+                getRandom(layoutFunctions)(usedContentTypes);
+                animationFrameId = requestAnimationFrame(animationLoop);
+            }
+
+            start();
+            document.body.addEventListener('click', start);
+        });
+    </script>
+</body>
+</html>
